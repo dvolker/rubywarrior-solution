@@ -7,12 +7,29 @@ class Player
     end
 
     if warrior.listen.count > 0 then
-      warrior.walk! warrior.direction_of(warrior.listen.first)
+      warrior.walk! direction_no_stairs(warrior, warrior.direction_of(warrior.listen.first))
     else
       warrior.walk! warrior.direction_of_stairs
     end
 
   end
+
+  def direction_no_stairs(warrior, direction)
+    if warrior.feel(direction).stairs? then
+      return find_empty_space(warrior, direction)
+    end
+    return direction
+  end
+
+  def find_empty_space(warrior, direction) then
+    [:forward,:right,:backward,:left].each do |dir|
+      if warrior.feel(dir).empty? then
+        return dir 
+      end
+    end
+  end
+
+
 
   def bind_and_attack(warrior)
     [:forward,:backward,:left,:right].each do |dir|
