@@ -1,7 +1,32 @@
 class Player
 
+  @@moves = []
 
+  def walk(dir)
+    @@moves.push(dir)
+    @@warrior.walk! dir
+  end
+  
   def play_turn(warrior)
+    @@warrior = warrior
+    if hear_ticking?(warrior) then
+      if warrior.feel(direction_of_ticking(warrior)).captive? then
+        warrior.rescue! direction_of_ticking(warrior)
+        return
+      end
+      dir = direction_of_ticking(warrior)
+      if warrior.feel(dir).captive? then
+        warrior.rescue! dir 
+        return
+      end
+
+      if opposite_dir(dir) == @@moves.last
+        dir = find_empty_space(warrior, dir)
+      end
+      walk(dir)
+      return
+    end
+
     if bind_and_attack(warrior) then
       return
     end
@@ -21,6 +46,19 @@ class Player
     return direction
   end
 
+  def opposite_dir(direction)
+    case direction
+    when :forward
+      return :backward
+    when :backward
+      return :forward
+    when :left
+      return :right
+    when :right
+      return :left
+    end
+  end
+
   def find_empty_space(warrior, direction) 
     [:forward,:right,:backward,:left].each do |dir|
       if direction == dir then
@@ -32,6 +70,28 @@ class Player
     end
   end
 
+  def hear_ticking?(warrior)
+    warrior.listen.each do |space|
+      if space.ticking? then
+        return true
+      end
+    end
+    return false
+  end
+
+  def direction_of_ticking(warrior)
+    warrior.listen.each do |space|
+      if space.ticking? then
+        dir = warrior.direction_of(space)
+        if warrior.feel(dir).captive? or warrior.feel(dir).empty? then
+          return dir 
+        else
+          return find_empty_space(warrior, dir)
+        end
+      end
+    end
+
+  end
 
 
   def bind_and_attack(warrior)
