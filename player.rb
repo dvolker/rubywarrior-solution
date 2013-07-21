@@ -15,8 +15,10 @@ class Player
         return
       end
       dir = direction_of_ticking(warrior)
-      if warrior.feel(dir).captive? then
-        warrior.rescue! dir 
+      if warrior.feel(dir).enemy? then
+
+        #warrior.attack! dir 
+        bind_all_but_dir(warrior, dir)
         return
       end
 
@@ -37,6 +39,21 @@ class Player
       warrior.walk! warrior.direction_of_stairs
     end
 
+  end
+
+  def bind_all_but_dir(warrior, direction)
+    [:forward,:right,:backward,:left].each do |dir|
+      if dir == direction then
+        next
+      end
+      if warrior.feel(dir).enemy? then
+        warrior.bind! dir 
+        return
+      end
+    end
+    if warrior.feel(direction).enemy? then
+      warrior.attack! direction 
+    end
   end
 
   def direction_no_stairs(warrior, direction)
@@ -83,7 +100,8 @@ class Player
     warrior.listen.each do |space|
       if space.ticking? then
         dir = warrior.direction_of(space)
-        if warrior.feel(dir).captive? or warrior.feel(dir).empty? then
+        if warrior.feel(dir).captive? or warrior.feel(dir).empty? \
+            or warrior.feel(dir).enemy? then
           return dir 
         else
           return find_empty_space(warrior, dir)
