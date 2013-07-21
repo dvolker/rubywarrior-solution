@@ -9,6 +9,9 @@ class Player
   
   def play_turn(warrior)
     @@warrior = warrior
+    
+    return if asplode_if_needed(warrior)
+
     if hear_ticking?(warrior) then
       if warrior.feel(direction_of_ticking(warrior)).captive? then
         warrior.rescue! direction_of_ticking(warrior)
@@ -111,6 +114,17 @@ class Player
 
   end
 
+  def asplode_if_needed(warrior)
+    [:forward,:backward,:left,:right].each do |dir|
+      enemy_count = 0
+      warrior.look(dir)[0..1].each { |s| enemy_count += 1 if s.enemy? }
+      if enemy_count >= 2 then
+        warrior.detonate!(dir) 
+        return true
+      end
+    end
+    false
+  end
 
   def bind_and_attack(warrior)
     [:forward,:backward,:left,:right].each do |dir|
