@@ -10,6 +10,7 @@ class Player
   def play_turn(warrior)
     @@warrior = warrior
     
+    puts "DIST: #{distance_to_nearest_explosive(warrior)}"
     return if asplode_if_needed(warrior)
 
     if hear_ticking?(warrior) then
@@ -28,7 +29,11 @@ class Player
       if opposite_dir(dir) == @@moves.last
         dir = find_empty_space(warrior, dir)
       end
-      walk(dir)
+      if distance_to_nearest_explosive(warrior) > 2 then
+        walk(dir) unless rest_if_needed(warrior)
+      else
+        walk(dir) 
+      end
       return
     end
 
@@ -114,11 +119,31 @@ class Player
 
   end
 
+  def distance_to_nearest_explosive(warrior)
+    mindist = 999
+    warrior.listen.each do |s|
+      if s.ticking? then
+        dist = warrior.distance_of(s)
+        mindist = dist if dist < mindist
+      end
+    end
+    mindist 
+  end
+
+  def rest_if_needed(warrior)
+    if warrior.health < 14 then
+      warrior.rest!
+      return true
+    end
+    false
+  end
+
   def asplode_if_needed(warrior)
+    return false unless warrior.health > 8
     [:forward,:backward,:left,:right].each do |dir|
       enemy_count = 0
       warrior.look(dir)[0..1].each { |s| enemy_count += 1 if s.enemy? }
-      if enemy_count >= 2 then
+      if enemy_count >= 2 and distance_to_nearest_explosive(warrior) > 2 then
         warrior.detonate!(dir) 
         return true
       end
