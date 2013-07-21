@@ -21,8 +21,11 @@ class Player
     return direction
   end
 
-  def find_empty_space(warrior, direction) then
+  def find_empty_space(warrior, direction) 
     [:forward,:right,:backward,:left].each do |dir|
+      if direction == dir then
+        next
+      end
       if warrior.feel(dir).empty? then
         return dir 
       end
